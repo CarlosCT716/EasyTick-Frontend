@@ -1,13 +1,11 @@
-
-import './index.css'
+import { BrowserRouter } from 'react-router-dom';
+import AppRouter from './routes/AppRouter';
 
 function App() {
   return (
-    <>
-      <h1 className="text-3xl font-bold underline text-blue-900">
-        EasyTicket
-      </h1>
-    </>
+    <BrowserRouter>
+      <AppRouter />
+    </BrowserRouter>
   )
 }
 
