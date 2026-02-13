@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 
 interface NavbarProps {
   onOpenSidebar: () => void;
@@ -31,14 +32,14 @@ const Navbar = ({ onOpenSidebar }: NavbarProps) => {
         <div className="container mx-auto px-4 h-20 flex items-center justify-between gap-4 relative">
 
             <div className="flex items-center gap-6">
-                <a href="#" className="flex items-center gap-2 group shrink-0">
+                <Link to="/" className="flex items-center gap-2 group shrink-0">
                     <div className="w-10 h-10 rounded-full bg-[#0B4D6C] flex items-center justify-center text-white text-lg">
                         <i className="fa-solid fa-ticket"></i>
                     </div>
                     <h2 className="text-xl font-bold text-[#0B4D6C] tracking-tight group-hover:text-cyan-600 transition hidden sm:block">
                         EasyTicket
                     </h2>
-                </a>
+                </Link>
 
                 <div className="relative">
                     <button 

@@ -12,7 +12,6 @@ const EventsPage = () => {
           
           <div className="lg:col-span-3 space-y-10">
              
-             {/* Sección Nuevos Eventos */}
              <section>
                 <div className="flex justify-between items-center mb-6 border-b border-gray-200 pb-2">
                    <h2 className="font-bold text-2xl text-[#002940]">Nuevos Eventos</h2>
@@ -22,7 +21,8 @@ const EventsPage = () => {
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                   <EventCard 
+                   <EventCard
+                     id={1}
                       image="https://picsum.photos/seed/m1/400/200"
                       category="Académico"
                       title="Matemática I - Repaso"
@@ -33,6 +33,7 @@ const EventsPage = () => {
                       day="16"
                    />
                    <EventCard 
+                     id={2}
                       image="https://picsum.photos/seed/hp/400/200"
                       category="Taller"
                       title="Habilidades Blandas"
@@ -43,6 +44,7 @@ const EventsPage = () => {
                       date="18 Feb"
                    />
                    <EventCard 
+                        id={3}
                       image="https://picsum.photos/seed/dev/400/200"
                       category="Tecnología"
                       title="Intro a React & Tailwind"
@@ -54,13 +56,11 @@ const EventsPage = () => {
                    />
                 </div>
              </section>
-
-             {/* Sección Te podrían gustar */}
++
              <RecommendedEvents />
 
           </div>
 
-          {/* Aside: Publicidad (Replicado de tu HTML) */}
           <aside className="hidden lg:block lg:col-span-1 space-y-6 sticky top-24 h-fit">
              <div className="bg-linear-to-br from-[#0B4D6C] to-cyan-700 rounded-2xl p-6 text-white text-center shadow-lg relative overflow-hidden">
                 <div className="absolute top-0 right-0 opacity-10 transform translate-x-4 -translate-y-4">
@@ -82,7 +82,6 @@ const EventsPage = () => {
              </div>
           </aside>
 
-          {/* Publicidad Móvil */}
           <div className="lg:hidden col-span-1">
               <div className="bg-gray-100 rounded-xl p-4 text-center text-gray-500 text-sm border-2 border-dashed border-gray-300">
                   Espacio Publicitario
