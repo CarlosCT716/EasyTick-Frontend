@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // URL base del backend (auth-service)
-const API_BASE_URL = 'http://localhost:8085/api/auth';
+const API_BASE_URL = 'http://localhost:8080/api/auth';
 
 // Crear instancia de axios con configuración base
 const authApi = axios.create({
