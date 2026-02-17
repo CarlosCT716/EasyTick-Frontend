@@ -7,20 +7,51 @@ import LoginPage from '../features/auth/pages/LoginPage';
 import MyBookingsPage from '../features/bookings/pages/BookingsPage';
 import RegisterPage from '../features/auth/pages/RegisterPage';
 import CheckoutPage from '../features/payments/pages/CheckoutPage';
+import ProtectedRoute from '../features/auth/components/ProtectedRoute';
 
 const AppRouter = () => {
   return (
     <Routes>
-    <Route path="/" element={<Layout />}>
+      {/* Rutas públicas con Layout */}
+      <Route path="/" element={<Layout />}>
         <Route index element={<EventsPage />} />
         <Route path="event/:id" element={<EventDetailPage />} />
-        <Route path="profile" element={<ProfilePage />} />
-        <Route path="bookings" element={<MyBookingsPage />} />
+        
+        {/* Rutas protegidas (requieren login) */}
+        <Route 
+          path="profile" 
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="bookings" 
+          element={
+            <ProtectedRoute>
+              <MyBookingsPage />
+            </ProtectedRoute>
+          } 
+        />
       </Route>
+
+      {/* Rutas de autenticación (sin Layout) */}
       <Route path="/login" element={<LoginPage />} />
-      <Route path="*" element={<Navigate to="/" />} />
       <Route path="/register" element={<RegisterPage />} />
-      <Route path="/checkout" element={<CheckoutPage />} />
+      
+      {/* Ruta de checkout (protegida) */}
+      <Route 
+        path="/checkout" 
+        element={
+          <ProtectedRoute>
+            <CheckoutPage />
+          </ProtectedRoute>
+        } 
+      />
+
+      {/* Ruta por defecto */}
+      <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );
 };

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import UserMenu from '@/features/auth/components/UserMenu';
 
 interface NavbarProps {
   onOpenSidebar: () => void;
@@ -91,15 +92,8 @@ const Navbar = ({ onOpenSidebar }: NavbarProps) => {
                     <i className="fa-solid fa-plus"></i> <span className="hidden lg:inline">Crear Evento</span><span className="lg:hidden">Crear</span>
                 </a>
 
-                <button onClick={onOpenSidebar} className="flex items-center gap-2 focus:outline-none group pl-2">
-                    <div className="text-right hidden lg:block">
-                        <p className="text-sm font-bold text-gray-700 group-hover:text-[#0B4D6C] transition">Carlos Correa</p>
-                    </div>
-                    <div className="w-10 h-10 rounded-full bg-gray-200 border-2 border-white shadow-sm flex items-center justify-center text-gray-500 overflow-hidden hover:ring-2 hover:ring-[#0B4D6C] transition relative">
-                        <i className="fa-regular fa-user text-lg"></i>
-                        <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
-                    </div>
-                </button>
+                {/* Componente UserMenu integrado */}
+                <UserMenu />
             </div>
         </div>
 
