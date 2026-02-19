@@ -1,8 +1,15 @@
 import EventCarousel from '../components/EventCarrousel';
 import EventCard from '../components/EventCard';
 import RecommendedEvents from '../components/RecommendedEvents';
+import { useEvents } from "../hooks/useEvents";
 
 const EventsPage = () => {
+
+  const { events, loading, error } = useEvents();
+
+  if (loading) return <p className="text-center mt-10">Cargando eventos...</p>;
+  if (error) return <p className="text-center mt-10 text-red-500">{error}</p>;
+
   return (
     <>
       <EventCarousel />
@@ -21,40 +28,31 @@ const EventsPage = () => {
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                   <EventCard
-                     id={1}
-                      image="https://picsum.photos/seed/m1/400/200"
-                      category="Académico"
-                      title="Matemática I - Repaso"
-                      date="16 Feb"
-                      location="Campus Central"
-                      price={20.00}
-                      month="FEB"
-                      day="16"
-                   />
-                   <EventCard 
-                     id={2}
-                      image="https://picsum.photos/seed/hp/400/200"
-                      category="Taller"
-                      title="Habilidades Blandas"
-                      location="Online vía Zoom"
-                      price={0.00}
-                      month="FEB"
-                      day="18"
-                      date="18 Feb"
-                   />
-                   <EventCard 
-                        id={3}
-                      image="https://picsum.photos/seed/dev/400/200"
-                      category="Tecnología"
-                      title="Intro a React & Tailwind"
-                      location="Auditorio B"
-                      price={35.00}
-                      month="MAR"
-                      day="02"
-                      date="02 Mar"
-                   />
-                </div>
+{events.length === 0 ? (
+  <p className="text-gray-500">No hay eventos disponibles</p>
+) : (
+  events.map((event: any) => (
+    <EventCard
+      key={event.id}
+      id={event.id}
+      image="https://picsum.photos/400/200"
+      category="Evento"
+      title={event.title}
+      location={event.location}
+      price={event.price}
+      month={new Date(event.eventDate)
+        .toLocaleString("es-ES", { month: "short" })
+        .toUpperCase()}
+      day={new Date(event.eventDate)
+        .getDate()
+        .toString()}
+      date={new Date(event.eventDate)
+        .toLocaleDateString()}
+    />
+  ))
+)}
+
+</div>
              </section>
 +
              <RecommendedEvents />
