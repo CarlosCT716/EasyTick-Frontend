@@ -75,6 +75,15 @@ const UserMenu = () => {
             <span>Mis Reservas</span>
           </Link>
 
+          <Link
+            to="/profile"
+            className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 text-gray-700 transition"
+            onClick={() => setShowDropdown(false)}
+          >
+            <i className="fa-solid fa-user w-5"></i>
+            <span>Mis Eventos</span>
+          </Link>
+
           <hr className="my-2" />
 
           <button

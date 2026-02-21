@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import UserMenu from '@/features/auth/components/UserMenu';
 
 interface NavbarProps {
@@ -88,9 +88,14 @@ const Navbar = ({ onOpenSidebar }: NavbarProps) => {
                     <i className="fa-solid fa-magnifying-glass text-lg"></i>
                 </button>
 
-                <a href="#" className="hidden sm:flex items-center gap-2 bg-[#0B4D6C] hover:bg-[#093d56] text-white text-sm font-semibold px-5 py-2.5 rounded-full transition shadow-md hover:shadow-lg transform hover:-translate-y-0.5 whitespace-nowrap">
-                    <i className="fa-solid fa-plus"></i> <span className="hidden lg:inline">Crear Evento</span><span className="lg:hidden">Crear</span>
-                </a>
+<Link 
+  to="/create-event"
+  className="hidden sm:flex items-center gap-2 bg-[#0B4D6C] hover:bg-[#093d56] text-white text-sm font-semibold px-5 py-2.5 rounded-full transition shadow-md hover:shadow-lg transform hover:-translate-y-0.5 whitespace-nowrap"
+>
+  <i className="fa-solid fa-plus"></i>
+  <span className="hidden lg:inline">Crear Evento</span>
+  <span className="lg:hidden">Crear</span>
+</Link>
 
                 {/* Componente UserMenu integrado */}
                 <UserMenu />

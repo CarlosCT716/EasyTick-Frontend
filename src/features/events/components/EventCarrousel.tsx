@@ -1,6 +1,12 @@
 import { useRef, useEffect } from 'react';
+import type { EventListResponse } from '@/features/events/models/Event';
+import { Link } from 'react-router-dom';
 
-const EventCarousel = () => {
+interface EventCarouselProps {
+  events: EventListResponse[];
+}
+
+const EventCarousel = ({ events }: EventCarouselProps) => {
   const carouselRef = useRef<HTMLDivElement>(null);
 
   const scroll = (direction: number) => {
@@ -27,84 +33,32 @@ const EventCarousel = () => {
   return (
     <section className="bg-[#0B4D6C] py-8 relative group">
       <div className="container mx-auto px-4 relative">
-
         <div
           ref={carouselRef}
           className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 hide-scroll-bar scroll-smooth"
         >
-          <div className="snap-center shrink-0 w-[85%] md:w-150 h-75 bg-gray-800 rounded-2xl relative overflow-hidden shadow-lg group cursor-pointer">
-            <img
-              src="https://picsum.photos/seed/tech/800/400"
-              className="w-full h-full object-cover opacity-70 group-hover:scale-105 transition duration-500"
-            />
-            <div className="absolute bottom-0 left-0 w-full bg-linear-to-t from-black/90 to-transparent p-6">
-              <span className="bg-cyan-500 text-white text-xs font-bold px-2 py-1 rounded mb-2 inline-block">
-                Tecnología
-              </span>
-              <h3 className="text-2xl font-bold text-white mb-1">
-                Tech Summit Lima 2026
-              </h3>
-            </div>
-          </div>
-            <div className="snap-center shrink-0 w-[85%] md:w-150 h-75 bg-gray-800 rounded-2xl relative overflow-hidden shadow-lg group cursor-pointer">
-          <img
-            src="https://picsum.photos/seed/music/800/400"
-            className="w-full h-full object-cover opacity-70 group-hover:scale-105 transition duration-500"
-          />
-          <div className="absolute bottom-0 left-0 w-full bg-linear-to-t from-black/90 to-transparent p-6">
-            <span className="bg-purple-500 text-white text-xs font-bold px-2 py-1 rounded mb-2 inline-block">
-              Música
-            </span>
-            <h3 className="text-2xl font-bold text-white mb-1">
-              Festival de Rock Indie
-            </h3>
-            <p className="text-gray-300 text-sm">
-              <i className="fa-regular fa-calendar mr-2"></i>
-              20 Mar - Arena 1
-            </p>
-          </div>
+          {events.map(event => (
+            <Link
+              to={`/event/${event.id}`}
+              key={event.id}
+              className="snap-center shrink-0 w-[85%] md:w-150 h-75 bg-gray-800 rounded-2xl relative overflow-hidden shadow-lg group cursor-pointer"
+            >
+              <img
+                src={event.imageUrl}
+                className="w-full h-full object-cover opacity-70 group-hover:scale-105 transition duration-500"
+                alt={event.title}
+              />
+              <div className="absolute bottom-0 left-0 w-full bg-linear-to-t from-black/90 to-transparent p-6">
+                
+                <h3 className="text-2xl font-bold text-white mb-1">{event.title}</h3>
+                <p className="text-gray-300 text-sm">
+                  <i className="fa-regular fa-calendar mr-2"></i>
+                  {new Date(event.eventDate).toLocaleDateString()}
+                </p>
+              </div>
+            </Link>
+          ))}
         </div>
-
-        <div className="snap-center shrink-0 w-[85%] md:w-150 h-75 bg-gray-800 rounded-2xl relative overflow-hidden shadow-lg group cursor-pointer">
-          <img
-            src="https://picsum.photos/seed/edu/800/400"
-            className="w-full h-full object-cover opacity-70 group-hover:scale-105 transition duration-500"
-          />
-          <div className="absolute bottom-0 left-0 w-full bg-linear-to-t from-black/90 to-transparent p-6">
-            <span className="bg-green-500 text-white text-xs font-bold px-2 py-1 rounded mb-2 inline-block">
-              Educación
-            </span>
-            <h3 className="text-2xl font-bold text-white mb-1">
-              Workshop de Diseño UX/UI
-            </h3>
-            <p className="text-gray-300 text-sm">
-              <i className="fa-regular fa-calendar mr-2"></i>
-              05 Abr - Virtual
-            </p>
-          </div>
-        </div>
-
-        <div className="snap-center shrink-0 w-[85%] md:w-150 h-75 bg-gray-800 rounded-2xl relative overflow-hidden shadow-lg group cursor-pointer">
-          <img
-            src="https://picsum.photos/seed/food/800/400"
-            className="w-full h-full object-cover opacity-70 group-hover:scale-105 transition duration-500"
-          />
-          <div className="absolute bottom-0 left-0 w-full bg-linear-to-t from-black/90 to-transparent p-6">
-            <span className="bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded mb-2 inline-block">
-              Gastronomía
-            </span>
-            <h3 className="text-2xl font-bold text-white mb-1">
-              Feria Sabor Peruano
-            </h3>
-            <p className="text-gray-300 text-sm">
-              <i className="fa-regular fa-calendar mr-2"></i>
-              10 May - Parque Expo
-            </p>
-          </div>
-        </div>
-        </div>
-
-      
 
         <button
           onClick={() => scroll(-1)}
@@ -119,7 +73,6 @@ const EventCarousel = () => {
         >
           <i className="fa-solid fa-chevron-right"></i>
         </button>
-
       </div>
     </section>
   );

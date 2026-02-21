@@ -8,6 +8,7 @@ import MyBookingsPage from '../features/bookings/pages/BookingsPage';
 import RegisterPage from '../features/auth/pages/RegisterPage';
 import CheckoutPage from '../features/payments/pages/CheckoutPage';
 import ProtectedRoute from '../features/auth/components/ProtectedRoute';
+import CreateEventForm from '@/features/events/pages/EventForm';
 
 const AppRouter = () => {
   return (
@@ -34,6 +35,15 @@ const AppRouter = () => {
             </ProtectedRoute>
           } 
         />
+
+        <Route 
+  path="/create-event" 
+  element={
+    <ProtectedRoute>
+      <CreateEventForm />
+    </ProtectedRoute>
+  } 
+/>
       </Route>
 
       {/* Rutas de autenticación (sin Layout) */}
