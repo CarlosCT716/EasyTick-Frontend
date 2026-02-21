@@ -5,6 +5,8 @@ export interface CreateEventRequest {
   location: string;
   price: number;
   capacity: number;
+  categoryId: number; 
+  organizerId: number;
 }
 
 export interface UpdateEventRequest {
@@ -14,9 +16,12 @@ export interface UpdateEventRequest {
   location?: string;
   price?: number;
   capacity?: number;
+  categoryId: number; 
+  organizerId: number;
 }
 
 export interface EventListResponse {
+  category: string;
   id: number;
   title: string;
   eventDate: string; // ISO string
@@ -33,4 +38,8 @@ export interface EventResponse extends EventListResponse {
   organizerId: number;
   createdAt: string; // ISO string
   
+}
+export interface EventCategory {
+  id: number;
+  name: string;
 }
