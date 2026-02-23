@@ -5,6 +5,7 @@ import type { EventCategory } from '@/features/events/models/Event';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import { sweetAlertError, sweetAlertInfo, sweetImageUrl } from '@/shared/utils/alerts';
 
 const LocationPicker = ({ position, setPosition }: { position: any, setPosition: any }) => {
   useMapEvents({
@@ -26,9 +27,11 @@ const LocationPicker = ({ position, setPosition }: { position: any, setPosition:
 const CreateEventForm = () => {
   const { user } = useAuth(); 
   const [categories, setCategories] = useState<EventCategory[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const defaultCenter = { lat: -12.046374, lng: -77.042793 };
   const [mapPosition, setMapPosition] = useState<{lat: number, lng: number} | null>(null);
+  const [minDateTime, setMinDateTime] = useState<string>('');
 
   const [form, setForm] = useState({
     title: '',
@@ -44,6 +47,11 @@ const CreateEventForm = () => {
   const [preview, setPreview] = useState<string | null>(null);
 
   useEffect(() => {
+    // Configurar la fecha mínima permitida (fecha y hora actual)
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    setMinDateTime(now.toISOString().slice(0, 16));
+
     const fetchCats = async () => {
       try {
         const data = await getAllCategories();
@@ -73,34 +81,54 @@ const CreateEventForm = () => {
     e.preventDefault();
 
     if (!user) {
-      alert("Error: Sesión no encontrada.");
+      sweetAlertError("Sesión no encontrada. Por favor, vuelve a iniciar sesión.");
       return;
     }
 
     if (!mapPosition) {
-      alert("Por favor, selecciona una ubicación en el mapa haciendo clic en él.");
+      sweetAlertInfo("Por favor, selecciona una ubicación en el mapa haciendo clic en él.");
+      return;
+    }
+
+    // Validación: Imagen Obligatoria
+    if (!form.imageFile || !preview) {
+      sweetAlertInfo("El afiche o imagen del evento es obligatorio.");
+      return;
+    }
+
+    // Validación: Fecha en el futuro
+    const selectedDate = new Date(form.eventDate);
+    const currentDate = new Date();
+    if (selectedDate <= currentDate) {
+      sweetAlertInfo("La fecha y hora del evento no pueden estar en el pasado.");
       return;
     }
 
     try {
+      setIsSubmitting(true);
       const eventPayload = {
         title: form.title,
         description: form.description,
         eventDate: form.eventDate,
         location: form.location,
-        latitud: mapPosition.lat,
-        longitud: mapPosition.lng,
+        latitud: mapPosition.lat.toString(),
+        longitud: mapPosition.lng.toString(),
         price: Number(form.price),
         capacity: Number(form.capacity),
         categoryId: Number(form.categoryId), 
-        organizerId: user.id,                
+        organizerId: user!.id,                
       };
 
-      const newEvent = await createEvent(eventPayload, form.imageFile ?? undefined);
-      console.log('Evento creado:', newEvent);
+      await createEvent(eventPayload, form.imageFile);
 
-      alert('¡Evento creado correctamente!');
+      // Alerta de éxito con la imagen que subió el usuario
+      await sweetImageUrl(
+        '¡Evento Publicado!', 
+        `Tu evento "${form.title}" se ha creado correctamente.`, 
+        preview
+      );
       
+      // Limpiar formulario tras éxito
       setForm({
         title: '', description: '', eventDate: '', location: '', price: '', capacity: '', 
         categoryId: categories[0]?.id.toString() || '', imageFile: null
@@ -110,7 +138,9 @@ const CreateEventForm = () => {
 
     } catch (error) {
       console.error('Error al crear evento:', error);
-      alert('Hubo un error al crear el evento.');
+      sweetAlertError('Hubo un problema de conexión al crear el evento. Inténtalo de nuevo.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -144,6 +174,7 @@ const CreateEventForm = () => {
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-1">Fecha y Hora</label>
             <input type="datetime-local" name="eventDate" value={form.eventDate} onChange={handleChange} required
+              min={minDateTime}
               className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#0B4D6C]" />
           </div>
           <div>
@@ -206,9 +237,9 @@ const CreateEventForm = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Afiche / Imagen del Evento</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Afiche / Imagen del Evento <span className="text-red-500">*</span></label>
           <div className="flex flex-col sm:flex-row gap-4 items-start">
-            <input type="file" accept="image/*" onChange={handleChange}
+            <input type="file" accept="image/*" onChange={handleChange} required
               className="w-full sm:w-1/2 border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-[#0B4D6C] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-50 file:text-[#0B4D6C] hover:file:bg-cyan-100 transition" />
             
             {preview && (
@@ -223,8 +254,8 @@ const CreateEventForm = () => {
         <hr className="border-gray-100" />
 
         <div className="flex justify-end pt-2">
-          <button type="submit" className="bg-[#0B4D6C] text-white font-bold text-lg px-8 py-4 rounded-xl shadow-lg hover:shadow-cyan-500/30 hover:bg-[#093d56] transition transform active:scale-95 flex items-center gap-2">
-            <i className="fa-solid fa-cloud-arrow-up"></i> Publicar Evento
+          <button type="submit" disabled={isSubmitting} className="bg-[#0B4D6C] text-white font-bold text-lg px-8 py-4 rounded-xl shadow-lg hover:shadow-cyan-500/30 hover:bg-[#093d56] transition transform active:scale-95 flex items-center gap-2 disabled:opacity-70 disabled:active:scale-100">
+            {isSubmitting ? <><i className="fa-solid fa-spinner fa-spin"></i> Publicando...</> : <><i className="fa-solid fa-cloud-arrow-up"></i> Publicar Evento</>}
           </button>
         </div>
       </form>

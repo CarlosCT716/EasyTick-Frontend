@@ -34,8 +34,16 @@ export const createEvent = async (event: CreateEventRequest, image?: File): Prom
   return response.data;
 };
 
-export const updateEvent = async (id: string | number, event: UpdateEventRequest): Promise<EventResponse> => {
-  const response = await eventsApi.patch(`/${id}`, event);
+export const updateEvent = async (id: string | number, event: UpdateEventRequest, image?: File | null): Promise<EventResponse> => {
+  const formData = new FormData();
+  formData.append('event', JSON.stringify(event));
+  if (image) {
+    formData.append('image', image);
+  }
+  const response = await eventsApi.patch(`/${id}`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  
   return response.data;
 };
 

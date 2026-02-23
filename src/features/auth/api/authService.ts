@@ -43,17 +43,10 @@ export const authService = {
   getToken: (): string | null => {
     return localStorage.getItem('token');
   },
+  
+  // Obtener un usuario específico por su ID (Ej: para mostrar el organizador del evento)
+  getUserById: async (id: number): Promise<User> => {
+    const response = await authApi.get<User>(`/user/id/${id}`);
+    return response.data;
+  },
 };
-
-
-
-
-
-
-
-
-
-
-
-
-

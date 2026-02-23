@@ -2,22 +2,40 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getEventById } from '@/features/events/api/EventsService';
 import type { EventResponse } from '@/features/events/models/Event';
+// Importa la función que creaste arriba
+import { authService } from '@/features/auth/api/authService'; 
 
 const EventDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const [event, setEvent] = useState<EventResponse | null>(null);
+  const [organizerName, setOrganizerName] = useState<string>('Cargando...'); // Nuevo estado
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchEvent = async () => {
+    const fetchEventData = async () => {
       if (!id) return;
       setLoading(true);
       setError(null);
 
       try {
-        const data = await getEventById(id);
-        setEvent(data);
+        // 1. Obtenemos el evento
+        const eventData = await getEventById(id);
+        setEvent(eventData);
+
+        // 2. Si el evento tiene organizerId, buscamos su nombre
+        if (eventData.organizerId) {
+          try {
+            const userData = await authService.getUserById(Number(eventData.organizerId));
+setOrganizerName(userData.name || 'Organizador Desconocido');
+          } catch (userErr) {
+            console.warn('No se pudo cargar el nombre del organizador', userErr);
+            setOrganizerName('Organizador'); // Fallback
+          }
+        } else {
+          setOrganizerName('Organizador Anónimo');
+        }
+
       } catch (err: any) {
         console.error('Error al traer el evento:', err);
         setError('No se pudo cargar el evento. Intenta nuevamente.');
@@ -25,14 +43,14 @@ const EventDetailPage = () => {
         setLoading(false);
       }
     };
-    fetchEvent();
+    
+    fetchEventData();
   }, [id]);
 
   if (loading) return <div className="text-center py-20 text-gray-500"><i className="fa-solid fa-circle-notch fa-spin text-4xl mb-4"></i><br/>Cargando evento...</div>;
   if (error) return <p className="text-red-500 text-center mt-8">{error}</p>;
   if (!event) return <p className="text-gray-600 text-center mt-8">Evento no encontrado.</p>;
 
-  // 🚀 LÓGICA DEL MAPA: Coordenadas precisas o búsqueda por nombre
   const mapQuery = (event.latitud && event.longitud) 
     ? `${event.latitud},${event.longitud}` 
     : encodeURIComponent(event.location || 'Perú');
@@ -60,7 +78,8 @@ const EventDetailPage = () => {
 
             <div className="flex items-center gap-3 mb-3">
               <span className="text-gray-300 text-sm font-medium">
-                <i className="fa-regular fa-user mr-1"></i> Por {event.organizerId}
+                {/* AQUI MOSTRAMOS EL NOMBRE EN LUGAR DEL ID */}
+                <i className="fa-regular fa-user mr-1"></i> Por {organizerName}
               </span>
             </div>
 
@@ -88,7 +107,7 @@ const EventDetailPage = () => {
         </div>
       </div>
 
-      {/* Contenido principal */}
+      {/* Contenido principal (Se mantiene igual) */}
       <main className="container mx-auto px-4 py-8 -mt-8 relative z-20">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           

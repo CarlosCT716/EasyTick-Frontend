@@ -6,6 +6,7 @@ import type { EventCategory } from '@/features/events/models/Event';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import { sweetAlertError, sweetAlertInfo, sweetImageUrl, sweetConfirm } from '@/shared/utils/alerts';
 
 const LocationPicker = ({ position, setPosition }: { position: any, setPosition: any }) => {
   useMapEvents({
@@ -32,10 +33,10 @@ const EventEditPage = () => {
   const [categories, setCategories] = useState<EventCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const defaultCenter = { lat: -12.046374, lng: -77.042793 };
   const [mapPosition, setMapPosition] = useState<{lat: number, lng: number} | null>(null);
+  const [minDateTime, setMinDateTime] = useState<string>('');
 
   const [form, setForm] = useState({
     title: '',
@@ -52,6 +53,11 @@ const EventEditPage = () => {
   const [preview, setPreview] = useState<string | null>(null);
 
   useEffect(() => {
+    // Configurar la fecha mínima (fecha y hora actual)
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    setMinDateTime(now.toISOString().slice(0, 16));
+
     const loadData = async () => {
       try {
         setLoading(true);
@@ -88,14 +94,15 @@ const EventEditPage = () => {
 
       } catch (err) {
         console.error(err);
-        setError('No se pudo cargar la información del evento.');
+        sweetAlertError('No se pudo cargar la información del evento.');
+        navigate('/my-events');
       } finally {
         setLoading(false);
       }
     };
 
     if (id && user) loadData();
-  }, [id, user]);
+  }, [id, user, navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     if ('files' in e.target && (e.target as HTMLInputElement).files) {
@@ -115,17 +122,39 @@ const EventEditPage = () => {
     e.preventDefault();
     
     if (!user) {
-        setError("Sesión no válida.");
+        sweetAlertError("Sesión no válida. Por favor, inicia sesión.");
         return;
     }
 
     if (!mapPosition) {
-        setError("Selecciona una ubicación en el mapa.");
+        sweetAlertInfo("Selecciona una ubicación en el mapa para el evento.");
         return;
     }
 
+    // Validación de fecha futura
+    const selectedDate = new Date(form.eventDate);
+    const currentDate = new Date();
+    if (selectedDate <= currentDate) {
+        sweetAlertInfo("La fecha y hora del evento no pueden estar en el pasado.");
+        return;
+    }
+
+    // Validación de imagen (debe haber una imagen subida o una existente en preview)
+    if (!form.imageFile && !preview) {
+      sweetAlertInfo("El afiche o imagen del evento es obligatorio.");
+      return;
+    }
+
+    // Confirmación antes de actualizar
+    const confirmation = await sweetConfirm(
+      '¿Actualizar Evento?', 
+      '¿Estás seguro de que deseas guardar estos cambios?', 
+      'Sí, actualizar'
+    );
+
+    if (!confirmation.isConfirmed) return;
+
     setSubmitting(true);
-    setError(null);
 
     const eventPayload = {
       title: form.title,
@@ -137,26 +166,28 @@ const EventEditPage = () => {
       price: Number(form.price),
       capacity: Number(form.capacity),
       categoryId: Number(form.categoryId),
-      organizerId: user.id, // Aquí ya no falla porque validamos el user arriba
+      organizerId: user.id,
       imageUrl: form.imageUrl 
     };
 
     try {
-      // Si hay un nuevo archivo de imagen, podrías necesitar enviarlo como FormData 
-      // si tu backend soporta multipart en el PATCH. 
-      // Por ahora se envía el JSON según tu UpdateEventRequest.
-      await updateEvent(id!, eventPayload);
-      alert('¡Actualizado correctamente!');
+
+      await updateEvent(id!, eventPayload, form.imageFile);
+      
+      await sweetImageUrl(
+        '¡Actualizado!', 
+        'Los cambios en el evento se guardaron correctamente.', 
+        preview!
+      );
+      
       navigate('/my-events');
     } catch (err: any) {
       console.error(err);
-      setError("Error al actualizar: Verifica que la categoría sea válida.");
+      sweetAlertError("Error al actualizar: Verifica los datos e inténtalo de nuevo.");
     } finally {
       setSubmitting(false);
     }
   };
-
-  if (loading) return <div className="text-center py-20 font-semibold text-[#0B4D6C]">Cargando...</div>;
 
   return (
     <main className="container mx-auto px-4 py-8 max-w-4xl">
@@ -191,6 +222,7 @@ const EventEditPage = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Fecha y Hora</label>
                 <input type="datetime-local" name="eventDate" required value={form.eventDate} onChange={handleChange}
+                  min={minDateTime}
                   className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#0B4D6C] outline-none" />
               </div>
             </div>
@@ -222,32 +254,34 @@ const EventEditPage = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Imagen del Evento</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Imagen del Evento <span className="text-red-500">*</span></label>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
                <input type="file" accept="image/*" onChange={handleChange}
                   className="w-full border border-gray-300 rounded-lg p-2 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-50 file:text-[#0B4D6C] hover:file:bg-cyan-100" />
+               
                {preview && (
-                 <img src={preview} alt="Preview" className="h-32 w-full object-cover rounded-xl border border-gray-200" />
+                 <div className="relative">
+                   <img src={preview} alt="Preview" className="h-32 w-full object-cover rounded-xl border border-gray-200 shadow-sm" />
+                   <span className="absolute top-2 right-2 bg-white/80 px-2 py-1 text-xs font-bold text-gray-700 rounded shadow">Vista Previa</span>
+                 </div>
                )}
             </div>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
-            <textarea name="description" rows={4} value={form.description} onChange={handleChange}
+            <textarea name="description" rows={4} required value={form.description} onChange={handleChange}
               className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#0B4D6C] outline-none resize-none bg-white"></textarea>
           </div>
-
-          {error && <p className="text-red-500 text-sm italic font-bold">⚠️ {error}</p>}
 
           <div className="flex justify-end gap-3 pt-6 border-t">
             <button type="button" onClick={() => navigate('/my-events')}
               className="px-6 py-3 rounded-xl font-semibold text-gray-500 hover:bg-gray-100 transition">
-              Descartar
+              Cancelar
             </button>
             <button type="submit" disabled={submitting}
-              className="px-10 py-3 bg-[#0B4D6C] text-white rounded-xl font-bold shadow-lg hover:bg-[#083a52] transition disabled:opacity-50">
-              {submitting ? 'Guardando...' : 'Actualizado'}
+              className="px-10 py-3 bg-[#0B4D6C] text-white rounded-xl font-bold shadow-lg hover:bg-[#083a52] transition disabled:opacity-50 flex items-center gap-2">
+              {submitting ? <><i className="fa-solid fa-spinner fa-spin"></i> Guardando...</> : <><i className="fa-solid fa-check"></i> Actualizar Evento</>}
             </button>
           </div>
         </form>
