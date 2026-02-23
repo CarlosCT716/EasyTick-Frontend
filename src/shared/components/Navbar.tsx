@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link,  useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { getAllCategories } from '@/features/events/api/EventsService';
 import type { EventCategory } from '@/features/events/models/Event';
@@ -12,12 +12,13 @@ const Navbar = ({ onOpenSidebar }: NavbarProps) => {
   const { user, isAuthenticated } = useAuth();
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const [categories, setCategories] = useState<EventCategory[]>([]);
+  const [searchParams, setSearchParams] = useSearchParams();
+ 
   
   const categoryBtnRef = useRef<HTMLButtonElement>(null);
   const categoryMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Cargar categorías dinámicas
     const fetchCats = async () => {
       try {
         const data = await getAllCategories();
@@ -39,6 +40,16 @@ const Navbar = ({ onOpenSidebar }: NavbarProps) => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (value) {
+      setSearchParams({ search: value });
+    } else {
+      searchParams.delete('search');
+      setSearchParams(searchParams);
+    }
+  };
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-30">
@@ -65,19 +76,36 @@ const Navbar = ({ onOpenSidebar }: NavbarProps) => {
                     
                     {isCategoryOpen && (
                         <div ref={categoryMenuRef} className="absolute left-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 p-2 z-50">
+                            <Link 
+                                to="/" 
+                                onClick={() => setIsCategoryOpen(false)}
+                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-cyan-50 hover:text-cyan-700 rounded-lg"
+                            >
+                                <i className="fa-solid fa-border-all mr-2 text-gray-400"></i> Todas
+                            </Link>
                             {categories.map(cat => (
-                                <Link key={cat.id} to={`/category/${cat.id}`} className="block px-4 py-2 text-sm text-gray-700 hover:bg-cyan-50 hover:text-cyan-700 rounded-lg">
+                                <Link 
+                                    key={cat.id} 
+                                    to={`/category/${cat.id}`} 
+                                    onClick={() => setIsCategoryOpen(false)}
+                                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-cyan-50 hover:text-cyan-700 rounded-lg"
+                                >
                                     <i className="fa-solid fa-tag mr-2 text-gray-400"></i> {cat.name}
                                 </Link>
                             ))}
-                            {categories.length === 0 && <p className="px-4 py-2 text-sm text-gray-500">Cargando...</p>}
                         </div>
                     )}
                 </div>
             </div>
 
             <div className="flex-1 max-w-xl hidden md:block relative">
-                <input type="text" placeholder="Buscar eventos..." className="w-full bg-gray-100 rounded-full pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0B4D6C]/50" />
+                <input 
+                    type="text" 
+                    placeholder="Buscar eventos..." 
+                    value={searchParams.get('search') || ''}
+                    onChange={handleSearch}
+                    className="w-full bg-gray-100 rounded-full pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0B4D6C]/50" 
+                />
                 <i className="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-gray-400"></i>
             </div>
 
@@ -89,7 +117,6 @@ const Navbar = ({ onOpenSidebar }: NavbarProps) => {
                   </Link>
                 )}
 
-                {/* 🌟 AQUÍ REEMPLAZAMOS EL UserMenu POR EL CONTROL DIRECTO DEL SIDEBAR */}
                 {isAuthenticated ? (
                   <button onClick={onOpenSidebar} className="flex items-center gap-2 hover:bg-gray-100 px-3 py-2 rounded-lg transition">
                     <div className="w-8 h-8 rounded-full bg-[#0B4D6C] flex items-center justify-center text-white font-semibold uppercase">

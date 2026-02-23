@@ -13,14 +13,18 @@ export interface UpdateEventRequest {
   title?: string;
   description?: string;
   eventDate?: string; // ISO string
+  latitud?: string;
+  longitud?: string;
   location?: string;
   price?: number;
   capacity?: number;
   categoryId: number; 
   organizerId: number;
+  imageUrl?: string;
 }
 
 export interface EventListResponse {
+  categoryId: number
   category: string;
   id: number;
   title: string;
@@ -37,7 +41,9 @@ export interface EventResponse extends EventListResponse {
   capacity: number;
   organizerId: number;
   createdAt: string; // ISO string
-  
+  location: string;
+  latitud: string;
+  longitud: string;
 }
 export interface EventCategory {
   id: number;

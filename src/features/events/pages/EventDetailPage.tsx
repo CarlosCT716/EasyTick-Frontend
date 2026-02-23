@@ -28,19 +28,26 @@ const EventDetailPage = () => {
     fetchEvent();
   }, [id]);
 
-  if (loading) return <p className="text-gray-600 text-center mt-8">Cargando evento...</p>;
+  if (loading) return <div className="text-center py-20 text-gray-500"><i className="fa-solid fa-circle-notch fa-spin text-4xl mb-4"></i><br/>Cargando evento...</div>;
   if (error) return <p className="text-red-500 text-center mt-8">{error}</p>;
   if (!event) return <p className="text-gray-600 text-center mt-8">Evento no encontrado.</p>;
+
+  // 🚀 LÓGICA DEL MAPA: Coordenadas precisas o búsqueda por nombre
+  const mapQuery = (event.latitud && event.longitud) 
+    ? `${event.latitud},${event.longitud}` 
+    : encodeURIComponent(event.location || 'Perú');
+
+  const googleMapsUrl = `https://maps.google.com/maps?q=${mapQuery}&hl=es&z=16&output=embed`;
 
   return (
     <>
       {/* Fondo con blur */}
-      <div className="relative h-[500px] w-full overflow-hidden">
+      <div className="relative h-125 w-full overflow-hidden" style={{ height: '500px' }}>
         <div
           className="absolute inset-0 bg-cover bg-center blur-xl scale-110 opacity-50"
           style={{ backgroundImage: `url(${event.imageUrl})` }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/40 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-gray-900 via-gray-900/40 to-transparent" />
 
         <div className="container mx-auto px-4 h-full flex items-end pb-12 relative z-10">
           <div className="text-white max-w-3xl">
@@ -52,7 +59,6 @@ const EventDetailPage = () => {
             </Link>
 
             <div className="flex items-center gap-3 mb-3">
-             
               <span className="text-gray-300 text-sm font-medium">
                 <i className="fa-regular fa-user mr-1"></i> Por {event.organizerId}
               </span>
@@ -85,19 +91,42 @@ const EventDetailPage = () => {
       {/* Contenido principal */}
       <main className="container mx-auto px-4 py-8 -mt-8 relative z-20">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
           {/* Descripción y ubicación */}
           <div className="lg:col-span-2 space-y-8">
             <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
               <h2 className="text-2xl font-bold text-[#0B4D6C] mb-4">Sobre el evento</h2>
               <p className="text-gray-600 leading-relaxed text-lg">{event.description}</p>
 
-              <h3 className="text-xl font-bold text-[#0B4D6C] mt-8 mb-4">Ubicación</h3>
-              <div className="bg-gray-100 h-64 rounded-xl flex items-center justify-center text-gray-400">
-                <div className="text-center">
-                  <i className="fa-solid fa-map-location-dot text-4xl mb-2"></i>
-                  <p>Mapa de Google Maps aquí</p>
-                </div>
+              <div className="flex justify-between items-center mt-8 mb-4">
+                <h3 className="text-xl font-bold text-[#0B4D6C]">Ubicación</h3>
+                {event.location && (
+                  <span className="text-gray-500 font-medium bg-gray-50 px-3 py-1 rounded-lg text-sm border border-gray-100">
+                    <i className="fa-solid fa-location-dot text-[#0B4D6C] mr-2"></i>
+                    {event.location}
+                  </span>
+                )}
               </div>
+              
+              <div className="bg-gray-100 h-80 rounded-xl overflow-hidden shadow-inner border border-gray-200" style={{ height: '320px' }}>
+                <iframe 
+                  width="100%" 
+                  height="100%" 
+                  frameBorder="0" 
+                  scrolling="no" 
+                  marginHeight={0} 
+                  marginWidth={0} 
+                  src={googleMapsUrl}
+                  title={`Mapa de ${event.title}`}
+                  className="w-full h-full"
+                ></iframe>
+              </div>
+              
+              {(event.latitud && event.longitud) && (
+                <p className="text-xs text-gray-400 mt-2 text-right">
+                  Coordenadas: {event.latitud}, {event.longitud}
+                </p>
+              )}
             </div>
           </div>
 
@@ -118,12 +147,18 @@ const EventDetailPage = () => {
                 </div>
               </div>
 
-              <Link
-                to={`/checkout/${event.id}`}
-                className="w-full bg-[#0B4D6C] hover:bg-[#093d56] text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition transform active:scale-95 flex justify-center items-center gap-2 text-lg"
-              >
-                <i className="fa-solid fa-ticket"></i> Comprar Entradas
-              </Link>
+              {event.eventStatus === 'ACTIVE' ? (
+                <Link
+                  to={`/checkout/${event.id}`}
+                  className="w-full bg-[#0B4D6C] hover:bg-[#093d56] text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition transform active:scale-95 flex justify-center items-center gap-2 text-lg"
+                >
+                  <i className="fa-solid fa-ticket"></i> Comprar Entradas
+                </Link>
+              ) : (
+                <div className="w-full bg-gray-200 text-gray-500 font-bold py-4 rounded-xl flex justify-center items-center gap-2 text-lg cursor-not-allowed">
+                  <i className="fa-solid fa-lock"></i> Evento Agotado/Cerrado
+                </div>
+              )}
 
               <p className="text-center text-gray-400 text-xs mt-4">
                 <i className="fa-solid fa-lock mr-1"></i> Pago 100% seguro con EasyTicket
@@ -144,6 +179,7 @@ const EventDetailPage = () => {
               </div>
             </div>
           </div>
+
         </div>
       </main>
     </>

@@ -9,7 +9,6 @@ import type { PaymentRecord, PaypalResponse, PaypalLink } from '@/features/payme
 
 const CheckoutPage = () => {
   const { id } = useParams<{ id: string }>(); 
-  
   const { user } = useAuth();
   
   const [event, setEvent] = useState<EventResponse | null>(null);
@@ -36,7 +35,7 @@ const CheckoutPage = () => {
   }, [id]);
 
   const waitForPaymentRecord = async (bookingId: number, retries = 5): Promise<PaymentRecord> => {
-    if (retries === 0) throw new Error("Tiempo de espera agotado al generar el pago. Intenta de nuevo.");
+    if (retries === 0) throw new Error("Tiempo de espera agotado al generar el pago.");
     
     const payments: PaymentRecord[] = await getPaymentsByBooking(bookingId);
     
@@ -76,13 +75,18 @@ const CheckoutPage = () => {
         throw new Error("No se pudo obtener el link seguro de PayPal");
       }
 
-    } catch (err: unknown) {
-      console.error(err);
-      if (err instanceof Error) {
+    } catch (err: any) {
+      console.error("Detalle del error:", err);
+      
+      // Verificamos si es un error 500 de Axios o similar
+      if (err.response && err.response.status === 500) {
+        setError("No se pudo realizar la transacción. Por favor, inténtalo de nuevo más tarde.");
+      } else if (err.message) {
         setError(err.message);
       } else {
         setError("Ocurrió un error inesperado al procesar la reserva.");
       }
+      
       setProcessing(false);
     }
   };
@@ -101,7 +105,6 @@ const CheckoutPage = () => {
         <h1 className="text-3xl font-bold text-[#002940] mb-8">Finalizar Compra</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Detalles del Evento */}
           <div className="space-y-6">
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
               <img src={event.imageUrl} alt={event.title} className="w-full h-48 object-cover rounded-xl mb-4" />
@@ -122,7 +125,6 @@ const CheckoutPage = () => {
             </div>
           </div>
 
-          {/* Resumen de Pago */}
           <div>
             <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 sticky top-24">
               <h3 className="font-bold text-lg text-gray-800 mb-6">Resumen de Pago</h3>

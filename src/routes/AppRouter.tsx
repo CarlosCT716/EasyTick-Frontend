@@ -12,6 +12,8 @@ import MyEventsPage from '@/features/events/pages/MyEventsPage';
 import PaymentSuccessPage from '@/features/payments/pages/PaymentSuccessPage';
 import PaymentCancelPage from '@/features/payments/pages/PaymentCancelPage';
 import MyTicketsPage from '@/features/bookings/pages/MyTicketsPage';
+import FilteredEventsPage from '@/features/events/pages/FilteredEventsPage';
+import EventEditPage from '@/features/events/pages/EventEditPage';
 
 const AppRouter = () => {
   return (
@@ -21,6 +23,7 @@ const AppRouter = () => {
         {/* Rutas Públicas */}
         <Route index element={<EventsPage />} />
         <Route path="event/:id" element={<EventDetailPage />} />
+        <Route path="category/:categoryId" element={<FilteredEventsPage />} />
         
         <Route 
           path="profile" 
@@ -57,7 +60,14 @@ const AppRouter = () => {
             </ProtectedRoute>
           } 
         />
-
+        <Route 
+          path="edit-event/:id" 
+          element={
+            <ProtectedRoute>
+              <EventEditPage />
+            </ProtectedRoute>
+          } 
+        />
         <Route 
           path="checkout/:id" 
           element={

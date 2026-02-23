@@ -28,7 +28,7 @@ const RecommendedEvents = ({ events }: RecommendedEventsProps) => {
 
       <div ref={containerRef} className="flex gap-4 overflow-x-auto hide-scroll-bar scroll-smooth">
         {recommended.map(event => (
-          <div key={event.id} className="flex-shrink-0 w-[85%] md:w-[45%] lg:w-[30%]">
+          <div key={event.id} className="shrink-0 w-[85%] md:w-[45%] lg:w-[30%]">
             <EventCard event={event} />
           </div>
         ))}
