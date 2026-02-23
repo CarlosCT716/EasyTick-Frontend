@@ -38,8 +38,6 @@ const MyEventsPage = () => {
     }
   };
 
-
-
   if (loading) return <div className="text-center py-20">Cargando tus eventos...</div>;
 
   return (
@@ -61,45 +59,69 @@ const MyEventsPage = () => {
               </tr>
             </thead>
             <tbody>
-              {events.map((event) => (
-                <tr key={event.id} className="border-b border-gray-50 hover:bg-gray-50 transition">
-                  <td className="p-4">
-                    <div className="flex items-center gap-3">
-                      <img src={event.imageUrl} alt={event.title} className="w-12 h-12 rounded object-cover" />
-                      <div>
-                        <p className="font-bold text-gray-800">{event.title}</p>
-                        <p className="text-xs text-gray-500">{event.category || 'Sin categoría'}</p>
+              {events.map((event) => {
+                // Determinamos si el evento está agotado
+                const isSoldOut = event.availableSlots === 0;
+
+                return (
+                  <tr key={event.id} className="border-b border-gray-50 hover:bg-gray-50 transition">
+                    <td className="p-4">
+                      <div className="flex items-center gap-3">
+                        <img src={event.imageUrl} alt={event.title} className="w-12 h-12 rounded object-cover" />
+                        <div>
+                          <p className="font-bold text-gray-800">{event.title}</p>
+                          {/* Agregamos info de cupos para que el organizador lo vea */}
+                          <p className="text-xs text-gray-500">
+                            {isSoldOut ? (
+                              <span className="text-red-500 font-semibold">¡Agotado!</span>
+                            ) : (
+                              `${event.availableSlots} cupos disponibles`
+                            )}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td className="p-4 text-sm text-gray-600">
-                    {new Date(event.eventDate).toLocaleDateString()}
-                  </td>
-                  <td className="p-4 text-sm text-gray-600">S/ {event.price.toFixed(2)}</td>
-                  <td className="p-4">
-                    <span className={`px-2 py-1 rounded text-xs font-bold ${
-                      event.eventStatus === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                    }`}>
-                      {event.eventStatus === 'ACTIVE' ? 'ACTIVO' : 'INACTIVO'}
-                    </span>
-                  </td>
-                  <td className="p-4 text-right space-x-2">
-                    {/* Botón Activar/Desactivar */}
-                    <button 
-                      onClick={() => handleToggleStatus(event.id, event.eventStatus)}
-                      title={event.eventStatus === 'ACTIVE' ? 'Desactivar' : 'Activar'}
-                      className={`p-2 rounded transition ${event.eventStatus === 'ACTIVE' ? 'text-yellow-600 hover:bg-yellow-50' : 'text-green-600 hover:bg-green-50'}`}
-                    >
-                      <i className={`fa-solid ${event.eventStatus === 'ACTIVE' ? 'fa-pause' : 'fa-play'}`}></i>
-                    </button>
-                    
-                    {/* Botón Editar */}
-                    <Link to={`/edit-event/${event.id}`} className="inline-block p-2 text-[#0B4D6C] hover:bg-cyan-50 rounded transition">
-                      <i className="fa-solid fa-pen"></i>
-                    </Link>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td className="p-4 text-sm text-gray-600">
+                      {new Date(event.eventDate).toLocaleDateString()}
+                    </td>
+                    <td className="p-4 text-sm text-gray-600">S/ {event.price.toFixed(2)}</td>
+                    <td className="p-4">
+                      {/* Badge de estado mejorado para mostrar 'AGOTADO' o 'FINALIZADO' */}
+                      <span className={`px-2 py-1 rounded text-xs font-bold ${
+                        event.eventStatus === 'FINISHED' || isSoldOut 
+                          ? 'bg-gray-100 text-gray-600' 
+                          : event.eventStatus === 'ACTIVE' 
+                              ? 'bg-green-100 text-green-700' 
+                              : 'bg-red-100 text-red-700'
+                      }`}>
+                        {isSoldOut || event.eventStatus === 'FINISHED' ? 'AGOTADO' : (event.eventStatus === 'ACTIVE' ? 'ACTIVO' : 'INACTIVO')}
+                      </span>
+                    </td>
+                    <td className="p-4 text-right space-x-2">
+                      {/* Botón Activar/Desactivar con lógica de deshabilitado */}
+                      <button 
+                        onClick={() => handleToggleStatus(event.id, event.eventStatus)}
+                        disabled={isSoldOut || event.eventStatus === 'FINISHED'} // 🔥 BLOQUEO DEL BOTÓN
+                        title={isSoldOut ? 'No puedes activar un evento agotado' : (event.eventStatus === 'ACTIVE' ? 'Desactivar' : 'Activar')}
+                        className={`p-2 rounded transition ${
+                          isSoldOut || event.eventStatus === 'FINISHED'
+                            ? 'text-gray-300 cursor-not-allowed' // Estilo deshabilitado
+                            : event.eventStatus === 'ACTIVE' 
+                                ? 'text-yellow-600 hover:bg-yellow-50' 
+                                : 'text-green-600 hover:bg-green-50'
+                        }`}
+                      >
+                        <i className={`fa-solid ${event.eventStatus === 'ACTIVE' ? 'fa-pause' : 'fa-play'}`}></i>
+                      </button>
+                      
+                      {/* Botón Editar */}
+                      <Link to={`/edit-event/${event.id}`} className="inline-block p-2 text-[#0B4D6C] hover:bg-cyan-50 rounded transition">
+                        <i className="fa-solid fa-pen"></i>
+                      </Link>
+                    </td>
+                  </tr>
+                );
+              })}
               {events.length === 0 && (
                 <tr>
                   <td colSpan={5} className="p-8 text-center text-gray-500">
